@@ -18,25 +18,51 @@ n == height.length
 0 <= height[i] <= 105
 */
 
-// create sorted with { height, index } 
-// start waterTrapped with inverted value sum
-//   if max height is x, the count each with height - x (as if there are walls in both border)
-// do for both side:
-// store a temp highest height
-// iterate in sorted height array, find closest to the border to start
-//   if next i is lower/bigger than the previous highest height, or out of bounds
-//     subtract waterTrapped with the distance to border times the height difference
-//     update the new highest height
+/**
+ * @param {number[]} heights
+ * @return {number}
+ * time: O(n) | space: O(n)
+ */
+var trap = function (heights) {
+    let waterTrapped = 0
+
+
+    let i = 0
+    let j = heights.length - 1
+    let leftMaxHeight = heights[i]
+    let rightMaxHeight = heights[j]
+
+    while (i < j) {
+        if (heights[i] < heights[j]) {
+            i++
+            if (heights[i] < leftMaxHeight) {
+                waterTrapped += leftMaxHeight - heights[i]
+            } else {
+                leftMaxHeight = heights[i]
+            }
+        } else {
+            j--
+            if (heights[j] < rightMaxHeight) {
+                waterTrapped += rightMaxHeight - heights[j]
+            } else {
+                rightMaxHeight = heights[j]
+            }
+        }
+    }
+
+    return waterTrapped
+};
 
 /**
  * @param {number[]} heights
  * @return {number}
+ * time: O(n*log n) | space: O(n)
  */
-var trap = function(heights) {
+var trap2 = function (heights) {
     const sortedHeights = heights.map((height, index) => {
         return { height, index }
     })
-    
+
     sortedHeights.sort((a, b) => {
         return a.height - b.height
     })
@@ -46,25 +72,37 @@ var trap = function(heights) {
         waterTrapped += sortedHeights[sortedHeights.length - 1].height - heights[i]
     }
 
-    let leftMostHighestHeight = sortedHeights[sortedHeights.length - 1]
-    let rightMostHighestHeight = sortedHeights[sortedHeights.length - 1]
+
+    let nextLowerHeight = sortedHeights[sortedHeights.length - 1]
     for (let i = sortedHeights.length - 1; i >= 0; i--) {
-        if (sortedHeights[i].height != leftMostHighestHeight.height) {
-            break;
+        if (sortedHeights[i].index >= nextLowerHeight.index) {
+            continue
         }
-        if (sortedHeights[i].index < leftMostHighestHeight.index) {
-            leftMostHighestHeight = sortedHeights[i]
+
+        if (sortedHeights[i].height === nextLowerHeight.height) {
+            nextLowerHeight = sortedHeights[i]
         }
-        if (sortedHeights[i].index > rightMostHighestHeight.index) {
-            rightMostHighestHeight = sortedHeights[i]
+
+        if (sortedHeights[i].height < nextLowerHeight.height) {
+            waterTrapped -= (nextLowerHeight.height - sortedHeights[i].height) * nextLowerHeight.index
+            nextLowerHeight = sortedHeights[i]
         }
     }
+    
+    nextLowerHeight = sortedHeights[sortedHeights.length - 1]
+    for (let i = sortedHeights.length - 1; i >= 0; i--) {
+        if (sortedHeights[i].index <= nextLowerHeight.index) {
+            continue
+        }
 
-    // console.log('leftMostHighestHeight', leftMostHighestHeight)
-    // console.log('rightMostHighestHeight', rightMostHighestHeight)
+        if (sortedHeights[i].height === nextLowerHeight.height) {
+            nextLowerHeight = sortedHeights[i]
+        }
 
-    for (let i = sortedHeights.index - 1; i >= 0; i--) {
-        
+        if (sortedHeights[i].height < nextLowerHeight.height) {
+            waterTrapped -= (nextLowerHeight.height - sortedHeights[i].height) * (heights.length - nextLowerHeight.index - 1)
+            nextLowerHeight = sortedHeights[i]
+        }
     }
 
     return waterTrapped
